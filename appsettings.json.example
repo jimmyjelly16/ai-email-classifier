@@ -1,0 +1,26 @@
+{
+  "_comment": "Copy this file to appsettings.json. API keys and DB passwords should be set via environment variables OPENAI_API_KEY and DEV_DB_PASSWORD — do not put them in this file.",
+  "Worker": {
+    "IntervalSeconds": 30,
+    "WatermarkMinutesBack": 1440
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.EntityFrameworkCore": "Warning"
+      }
+    },
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/email-classifier-.log",
+          "rollingInterval": "Day"
+        }
+      }
+    ]
+  }
+}
