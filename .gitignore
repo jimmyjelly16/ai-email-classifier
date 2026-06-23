@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 appsettings.json
 .claude/
 CLAUDE.md
+appsettings.Development.json
