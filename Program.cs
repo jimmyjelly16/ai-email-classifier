@@ -33,6 +33,7 @@ builder.Services.AddSingleton<IChatProviderFactory, ChatProviderFactory>();
 
 builder.Services.AddSingleton<IEmailClassifierService, EmailClassifierService>();
 builder.Services.AddSingleton<WatermarkService>();
+builder.Services.AddScoped<ReviewQueryService>();
 
 builder.Services.AddHostedService<Worker>();
 

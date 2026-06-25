@@ -24,14 +24,11 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Email Classifier Worker started. Interval={Interval}s",
-            _options.IntervalSeconds
-        );
+        LogMessages.WorkerStarted(_logger, _options.IntervalSeconds);
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Worker tick at {Time}", DateTimeOffset.UtcNow);
+            LogMessages.WorkerTick(_logger, DateTimeOffset.UtcNow);
 
             try
             {
@@ -49,14 +46,14 @@ public class Worker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled error in Worker tick.");
+                LogMessages.WorkerTickError(_logger, ex);
             }
 
-            _logger.LogInformation("Worker sleeping for {Interval}s", _options.IntervalSeconds);
+            LogMessages.WorkerSleeping(_logger, _options.IntervalSeconds);
 
             await Task.Delay(TimeSpan.FromSeconds(_options.IntervalSeconds), stoppingToken);
         }
 
-        _logger.LogInformation("Email Classifier Worker stopped.");
+        LogMessages.WorkerStopped(_logger);
     }
 }

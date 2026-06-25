@@ -26,7 +26,7 @@ public class WatermarkService
 
         if (state == null)
         {
-            _logger.LogInformation("No watermark found in DB. Will use default lookback.");
+            LogMessages.NoWatermarkFound(_logger);
             return null;
         }
 
@@ -39,7 +39,7 @@ public class WatermarkService
             )
         )
         {
-            _logger.LogInformation("Watermark loaded from DB: {Watermark}", watermark);
+            LogMessages.WatermarkLoaded(_logger, watermark);
             return watermark;
         }
 
@@ -66,6 +66,6 @@ public class WatermarkService
 
         await db.SaveChangesAsync();
 
-        _logger.LogInformation("Watermark updated in DB to {Watermark}", processedAt);
+        LogMessages.WatermarkUpdated(_logger, processedAt);
     }
 }

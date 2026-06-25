@@ -15,6 +15,11 @@ public class EmailInbox
     public string? AssignedTo { get; set; }
     public DateTime? ProcessedAt { get; set; }
     public int RetryCount { get; set; } = 0;
+    public bool IsReviewed { get; set; }
+    public bool? IsCorrect { get; set; }
+    public string? CorrectedCategory { get; set; }
+    public string? ReviewNote { get; set; }
+    public DateTime? ReviewedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

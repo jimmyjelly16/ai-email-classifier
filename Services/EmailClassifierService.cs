@@ -56,8 +56,8 @@ public sealed class EmailClassifierService : IEmailClassifierService
 
         var result = await provider.CompleteAsync(request, cancellationToken);
 
-        _logger.LogInformation(
-            "Classification done. Provider={Provider} Model={Model} In={In} Out={Out}",
+        LogMessages.ClassificationDone(
+            _logger,
             result.ProviderName,
             result.ModelUsed,
             result.InputTokens,

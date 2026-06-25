@@ -41,11 +41,7 @@ public sealed class OpenAiChatProvider : IChatCompletionProvider
         if (request.ForceJsonOutput)
             options.ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat();
 
-        _logger.LogInformation(
-            "Calling OpenAI provider. Model={Model} ForceJson={ForceJson}",
-            model,
-            request.ForceJsonOutput
-        );
+        LogMessages.CallingOpenAi(_logger, model, request.ForceJsonOutput);
 
         ChatCompletion completion = await client.CompleteChatAsync(
             messages,

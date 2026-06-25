@@ -39,38 +39,35 @@ public class EmailProcessingService
             await _watermark.GetWatermarkAsync()
             ?? DateTime.UtcNow.AddMinutes(-_options.WatermarkMinutesBack);
 
-        _logger.LogInformation("Processing emails since {Since}", since);
+        LogMessages.ProcessingSince(_logger, since);
 
-        var pendingEmails = await _db
-            .EmailInboxes.Where(e => e.Status == EmailStatus.Pending && e.CreatedAt >= since)
+        var maxRetry = _options.MaxRetryCount;
+
+        var emailsToProcess = await _db
+            .EmailInboxes.Where(e =>
+                (e.Status == EmailStatus.Pending && e.CreatedAt >= since)
+                || (e.Status == EmailStatus.Failed && e.RetryCount < maxRetry)
+            )
             .OrderBy(e => e.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Found {Count} pending emails since {Since}.",
-            pendingEmails.Count,
-            since
-        );
+        LogMessages.FoundEmailsToProcess(_logger, emailsToProcess.Count, since);
 
-        if (pendingEmails.Count == 0)
+        if (emailsToProcess.Count == 0)
         {
-            _logger.LogInformation("No pending emails to process.");
+            LogMessages.NoPendingEmails(_logger);
             await WriteProcessingLogAsync(runAt, 0, 0, null);
             return;
         }
 
-        foreach (var email in pendingEmails)
+        foreach (var email in emailsToProcess)
         {
             try
             {
                 email.Status = EmailStatus.Processing;
                 await _db.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation(
-                    "Classifying email Id={Id} Subject={Subject}",
-                    email.Id,
-                    email.Subject
-                );
+                LogMessages.ClassifyingEmail(_logger, email.Id, email.Subject);
 
                 var result = await _classifier.ClassifyAsync(
                     email.Subject,
@@ -89,8 +86,8 @@ public class EmailProcessingService
 
                 processedCount++;
 
-                _logger.LogInformation(
-                    "Email Id={Id} classified. Category={Category} Priority={Priority} AssignedTo={AssignedTo}",
+                LogMessages.EmailClassified(
+                    _logger,
                     email.Id,
                     result.Category,
                     result.Priority,
@@ -102,12 +99,7 @@ public class EmailProcessingService
                 failedCount++;
                 errorMessage = ex.Message;
 
-                _logger.LogError(
-                    ex,
-                    "Failed to classify email Id={Id} Subject={Subject}",
-                    email.Id,
-                    email.Subject
-                );
+                LogMessages.ClassifyFailed(_logger, ex, email.Id, email.Subject);
 
                 email.Status = EmailStatus.Failed;
                 email.RetryCount += 1;
@@ -118,11 +110,7 @@ public class EmailProcessingService
                 }
                 catch (Exception saveEx)
                 {
-                    _logger.LogError(
-                        saveEx,
-                        "Failed to save Failed status for email Id={Id}",
-                        email.Id
-                    );
+                    LogMessages.SaveFailedStatusError(_logger, saveEx, email.Id);
                 }
             }
         }
@@ -131,11 +119,7 @@ public class EmailProcessingService
 
         await WriteProcessingLogAsync(runAt, processedCount, failedCount, errorMessage);
 
-        _logger.LogInformation(
-            "Processing completed. Processed={Processed} Failed={Failed}",
-            processedCount,
-            failedCount
-        );
+        LogMessages.ProcessingCompleted(_logger, processedCount, failedCount);
     }
 
     private async Task WriteProcessingLogAsync(
