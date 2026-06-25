@@ -1,5 +1,6 @@
 using EmailClassifier;
 using EmailClassifier.Data;
+using EmailClassifier.Llm;
 using EmailClassifier.Models;
 using EmailClassifier.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,8 +21,18 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 
 builder.Services.Configure<WorkerOptions>(builder.Configuration.GetSection("Worker"));
 
+builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection("Llm"));
+builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection("OpenAI"));
+
+builder.Services.PostConfigure<OpenAiOptions>(o =>
+    o.ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? o.ApiKey
+);
+
+builder.Services.AddSingleton<IChatCompletionProvider, OpenAiChatProvider>();
+builder.Services.AddSingleton<IChatProviderFactory, ChatProviderFactory>();
+
+builder.Services.AddSingleton<IEmailClassifierService, EmailClassifierService>();
 builder.Services.AddSingleton<WatermarkService>();
-builder.Services.AddSingleton<IEmailClassifierService, OpenAiEmailClassifierService>();
 
 builder.Services.AddHostedService<Worker>();
 
